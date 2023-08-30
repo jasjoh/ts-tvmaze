@@ -2,7 +2,7 @@ import axios from "axios";
 import jQuery from 'jquery';
 
 const TVMAZE_BASE_URL = 'https://api.tvmaz.com/';
-const DEFAULT_IMAGE = 'http://www.foo.com/default_image.jpg';
+const DEFAULT_IMAGE = 'https://tinyurl.com/tv-missing';
 
 const $ = jQuery;
 
@@ -27,6 +27,20 @@ interface IShowResult {
       medium: string;
     };
   };
+}
+
+interface IEpisode {
+  id: number;
+  name: string;
+  season: string;
+  number: string;
+}
+
+interface IEpisodeResult {
+  id: number;
+  name: string;
+  season: number;
+  number: number;
 }
 
 
@@ -95,7 +109,7 @@ function populateShows(shows: IShow[]): void {
  */
 
 async function searchForShowAndDisplay() {
-  const term = $("#searchForm-term").val();
+  const term = $("#searchForm-term").val() as string;
   const shows = await searchShowsByTerm(term);
 
   $episodesArea.hide();
@@ -108,12 +122,39 @@ $searchForm.on("submit", async function (evt) {
 });
 
 
-/** Given a show ID, get from API and return (promise) array of episodes:
- *      { id, name, season, number }
+/** Given a show ID, get episode of that show from TVMaze API
+ *  and return (promise) array of episodes: { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id: number): Promise<IEpisode[]> {
+  // call TVMaze via Ajax to find episodes for the provided show ID
+  const response = await axios.get(`${TVMAZE_BASE_URL}/${id}/episodes`);
+  // resObject => { score, show }
+  const resObjects: IEpisodeResult[] = response.data;
+  return resObjects.map(res => {
+    return (
+      {
+        id: res.id,
+        name: res.name,
+        season: res.season.toString(),
+        number: res.number.toString(),
+      });
+  });
+}
 
-/** Write a clear docstring for this function... */
+/** Given list of episodes, create markup for each and to DOM */
 
-// function populateEpisodes(episodes) { }
+function populateEpisodes(episodes: IEpisode[]): void {
+  $episodesArea.empty();
+  let $episodeList = $("<ul></ul>")
+  for (let episode of episodes) {
+    const $episode = $(
+      `<li>
+        ${episode.name} (season ${episode.season}, number ${episode.number})
+      </li>
+      `);
+    $episodeList.append($episode);
+  }
+  $episodesArea.append($episodeList);
+  $episodesArea.show();
+}
