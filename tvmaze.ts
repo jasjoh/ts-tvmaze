@@ -1,7 +1,7 @@
 import axios from "axios";
 import jQuery from 'jquery';
 
-const TVMAZE_BASE_URL = 'https://api.tvmaz.com/';
+const TVMAZE_BASE_URL = 'https://api.tvmaze.com';
 const DEFAULT_IMAGE = 'https://tinyurl.com/tv-missing';
 
 const $ = jQuery;
@@ -43,8 +43,6 @@ interface IEpisodeResult {
   number: number;
 }
 
-
-
 /** Given a search term, search for tv shows that match that query.
  *
  *  Returns (promise) array of show objects: [show, show, ...].
@@ -69,7 +67,7 @@ async function searchShowsByTerm(term: string): Promise<IShow[]> {
         id: show.id,
         name: show.name,
         summary: show.summary,
-        image: show.image.medium || DEFAULT_IMAGE
+        image: show.image?.medium || DEFAULT_IMAGE
       });
   });
 }
@@ -128,7 +126,7 @@ $searchForm.on("submit", async function (evt) {
 
 async function getEpisodesOfShow(id: number): Promise<IEpisode[]> {
   // call TVMaze via Ajax to find episodes for the provided show ID
-  const response = await axios.get(`${TVMAZE_BASE_URL}/${id}/episodes`);
+  const response = await axios.get(`${TVMAZE_BASE_URL}/shows/${id}/episodes`);
   // resObject => { score, show }
   const resObjects: IEpisodeResult[] = response.data;
   return resObjects.map(res => {
@@ -159,16 +157,13 @@ function populateEpisodes(episodes: IEpisode[]): void {
   $episodesArea.show();
 }
 
-/**Add eventlisten when clicking the episode button */
+// handles clicking on Episodes button and shows episodes for show
 $showsList.on("click", "button", async function getAndDisplayEpisodes(evt) {
-  // change variable name
+  console.log("click handler called");
   const $divWithId = $(evt.target).closest(".Show");
-  console.log('divWithId', $divWithId);
 
   //looking for this attribute:data-show-id="${show.id}"
-  const showId = $divWithId.data("show-id");
-  console.log("showId=", showId);
-  // console.log();
-  await getEpisodesOfShow(showId);
-
+  const showId: number = $divWithId.data("show-id");
+  const episodes = await getEpisodesOfShow(showId);
+  populateEpisodes(episodes);
 });

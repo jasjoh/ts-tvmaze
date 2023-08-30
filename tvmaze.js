@@ -12585,7 +12585,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 var jquery_1 = __importDefault(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"));
-var TVMAZE_BASE_URL = 'https://api.tvmaz.com/';
+var TVMAZE_BASE_URL = 'https://api.tvmaze.com';
 var DEFAULT_IMAGE = 'https://tinyurl.com/tv-missing';
 var $ = jquery_1.default;
 var $showsList = $("#showsList");
@@ -12607,12 +12607,13 @@ function searchShowsByTerm(term) {
                     response = _a.sent();
                     resObjects = response.data;
                     return [2 /*return*/, resObjects.map(function (res) {
+                            var _a;
                             var show = res.show;
                             return ({
                                 id: show.id,
                                 name: show.name,
                                 summary: show.summary,
-                                image: show.image.medium || DEFAULT_IMAGE
+                                image: ((_a = show.image) === null || _a === void 0 ? void 0 : _a.medium) || DEFAULT_IMAGE
                             });
                         })];
             }
@@ -12670,7 +12671,7 @@ function getEpisodesOfShow(id) {
         var response, resObjects;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, axios_1.default.get("".concat(TVMAZE_BASE_URL, "/").concat(id, "/episodes"))];
+                case 0: return [4 /*yield*/, axios_1.default.get("".concat(TVMAZE_BASE_URL, "/shows/").concat(id, "/episodes"))];
                 case 1:
                     response = _a.sent();
                     resObjects = response.data;
@@ -12698,6 +12699,25 @@ function populateEpisodes(episodes) {
     $episodesArea.append($episodeList);
     $episodesArea.show();
 }
+// handles clicking on Episodes button and shows episodes for show
+$showsList.on("click", "button", function getAndDisplayEpisodes(evt) {
+    return __awaiter(this, void 0, void 0, function () {
+        var $divWithId, showId, episodes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log("click handler called");
+                    $divWithId = $(evt.target).closest(".Show");
+                    showId = $divWithId.data("show-id");
+                    return [4 /*yield*/, getEpisodesOfShow(showId)];
+                case 1:
+                    episodes = _a.sent();
+                    populateEpisodes(episodes);
+                    return [2 /*return*/];
+            }
+        });
+    });
+});
 
 
 /***/ })
