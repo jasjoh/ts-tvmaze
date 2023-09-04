@@ -146,7 +146,7 @@ async function getEpisodesOfShow(id: number): Promise<IEpisode[]> {
 
 function populateEpisodes(episodes: IEpisode[]): void {
   $episodesArea.empty();
-  let $episodeList = $("<ul></ul>")
+  let $episodeList = $("<ul></ul>");
   for (let episode of episodes) {
     const $episode = $(
       `<li>
@@ -158,3 +158,17 @@ function populateEpisodes(episodes: IEpisode[]): void {
   $episodesArea.append($episodeList);
   $episodesArea.show();
 }
+
+/**Add eventlisten when clicking the episode button */
+$showsList.on("click", "button", async function getAndDisplayEpisodes(evt) {
+  // change variable name
+  const $divWithId = $(evt.target).closest(".Show");
+  console.log('divWithId', $divWithId);
+
+  //looking for this attribute:data-show-id="${show.id}"
+  const showId = $divWithId.data("show-id");
+  console.log("showId=", showId);
+  // console.log();
+  await getEpisodesOfShow(showId);
+
+});
