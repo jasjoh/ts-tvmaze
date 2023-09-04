@@ -10,8 +10,25 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
-let anyValue = [];
-anyValue = ['foo'];
+
+interface IShow {
+  id: number;
+  name: string;
+  summary: string;
+  image: string;
+}
+
+interface IShowResult {
+  show: {
+    id: number;
+    name: string;
+    summary: string;
+    image: {
+      medium: string;
+    };
+  };
+}
+
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -21,57 +38,41 @@ anyValue = ['foo'];
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function searchShowsByTerm(term: string): Promise<any[]>  {
+async function searchShowsByTerm(term: string): Promise<IShow[]> {
   // call TVMaze via Ajax to find shows matching search term
   const response = await axios.get(
     `${TVMAZE_BASE_URL}/search/shows`,
-    {params:{q: term}}
-  )
+    { params: { q: term } }
+  );
   // resObject => { score, show }
-  const resObjects = response.data;
+  const resObjects: IShowResult[] = response.data;
 
 
-
-  /**
-   * { id, url, name, language, genre}
-   */
-
-  // return array of shows; injecting default image URL if none provided
-
-  // return [
-  //   {
-  //     id: 1767,
-  //     name: "The Bletchley Circle",
-  //     summary:
-  //       `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
-  //          women with extraordinary skills that helped to end World War II.</p>
-  //        <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
-  //          normal lives, modestly setting aside the part they played in
-  //          producing crucial intelligence, which helped the Allies to victory
-  //          and shortened the war. When Susan discovers a hidden code behind an
-  //          unsolved murder she is met by skepticism from the police. She
-  //          quickly realises she can only begin to crack the murders and bring
-  //          the culprit to justice with her former friends.</p>`,
-  //     image:
-  //         "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-  //   }
-  // ]
-  return ['foo'];
+  return resObjects.map(res => {
+    const show = res.show;
+    return (
+      {
+        id: show.id,
+        name: show.name,
+        summary: show.summary,
+        image: show.image.medium || DEFAULT_IMAGE
+      });
+  });
 }
 
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows) {
+function populateShows(shows: IShow[]): void {
   $showsList.empty();
 
   for (let show of shows) {
     const $show = $(
-        `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
+      `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
-              alt="Bletchly Circle San Francisco"
+              src=${show.image}
+              alt=${show.name}
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -84,7 +85,8 @@ function populateShows(shows) {
        </div>
       `);
 
-    $showsList.append($show);  }
+    $showsList.append($show);
+  }
 }
 
 
